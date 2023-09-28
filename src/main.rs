@@ -44,23 +44,33 @@ impl ConsoleHandle {
     }
 }
 
-fn enable_virtual_terminal_processing() -> windows::core::Result<Box<dyn Fn()>> {
+struct RewindMode {
+    handle: ConsoleHandle,
+    mode: CONSOLE_MODE,
+}
+
+impl Drop for RewindMode {
+    fn drop(&mut self){
+        let _  = self.handle.set_mode(self.mode);
+    }
+}
+
+fn enable_virtual_terminal_processing() -> windows::core::Result<RewindMode> {
     let stdout = new_console_handle()?;
     let mode = stdout.get_mode()?;
     let _ = stdout.set_mode(
         CONSOLE_MODE( mode.0 | ENABLE_VIRTUAL_TERMINAL_PROCESSING));
-    return Ok(Box::new(move ||{ let _= stdout.set_mode(mode); }) );
+    return Ok(RewindMode{ handle:stdout , mode:mode })
 }
 
 fn main() {
     match enable_virtual_terminal_processing() {
-        Ok(closer) => {
-            println!("\x1B[36msuccess\x1B[0m");
-            closer();
+        Ok(_) => {
             println!("\x1B[36msuccess\x1B[0m");
         }
         Err(err) => {
             println!("error: {:?}",err);
         }
     }
+    println!("\x1B[36m(AFTER)\x1B[0m");
 }
