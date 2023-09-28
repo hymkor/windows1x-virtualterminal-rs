@@ -44,7 +44,7 @@ impl ConsoleHandle {
     }
 }
 
-fn enable_birtual_terminal_processing() -> windows::core::Result<Box<dyn Fn()>> {
+fn enable_virtual_terminal_processing() -> windows::core::Result<Box<dyn Fn()>> {
     let stdout = new_console_handle()?;
     let mode = stdout.get_mode()?;
     let _ = stdout.set_mode(
@@ -53,7 +53,7 @@ fn enable_birtual_terminal_processing() -> windows::core::Result<Box<dyn Fn()>> 
 }
 
 fn main() {
-    match enable_birtual_terminal_processing() {
+    match enable_virtual_terminal_processing() {
         Ok(closer) => {
             println!("\x1B[36msuccess\x1B[0m");
             closer();
