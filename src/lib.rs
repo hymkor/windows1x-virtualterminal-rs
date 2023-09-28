@@ -72,28 +72,22 @@ fn change(handle: STD_HANDLE,and_value: u32,or_value: u32) -> windows::core::Res
     return Ok(RewindMode(stdout , mode))
 }
 
-
-#[allow(dead_code)]
 pub fn enable_stdin() -> windows::core::Result<RewindMode> {
     return change(STD_INPUT_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_INPUT);
 }
 
-#[allow(dead_code)]
 pub fn enable_stdout() -> windows::core::Result<RewindMode> {
     return change(STD_OUTPUT_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 }
 
-#[allow(dead_code)]
 pub fn enable_stderr() -> windows::core::Result<RewindMode> {
     return change(STD_ERROR_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 }
 
-#[allow(dead_code)]
 pub fn make_raw() -> windows::core::Result<RewindMode> {
     return change(STD_INPUT_HANDLE, RAW_MODE, 0);
 }
 
-#[allow(dead_code)]
 pub fn getkey() -> Result<String,Box<dyn std::error::Error>> {
     let mut buffer: Vec<u8> = vec![0; 256];
     let mut stdin = std::io::stdin();

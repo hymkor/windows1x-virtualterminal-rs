@@ -9,10 +9,6 @@ edition = "2021"
 name = "virtualterminal"
 path = "src/lib.rs"
 
-[examples]
-name = "examples"
-path = "src/examples"
-
 [dependencies.windows]
 version = "0.48.0"
 
