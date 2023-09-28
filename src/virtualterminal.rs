@@ -33,8 +33,10 @@ impl ConsoleHandle {
 
     fn set_mode(&self, mode: CONSOLE_MODE) -> windows::core::Result<()> {
         unsafe{
-            SetConsoleMode( self.0  , mode );
-            return Ok(());
+            match SetConsoleMode( self.0  , mode ).ok() {
+                Ok(_) => return Ok(()),
+                Err(err) => return Err(err),
+            }
         }
     }
 }
@@ -50,8 +52,8 @@ impl Drop for RewindMode {
 fn enable(handle: STD_HANDLE) -> windows::core::Result<RewindMode> {
     let stdout = new_console_handle(handle)?;
     let mode = stdout.get_mode()?;
-    let _ = stdout.set_mode(
-        CONSOLE_MODE( mode.0 | ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+    stdout.set_mode(
+        CONSOLE_MODE( mode.0 | ENABLE_VIRTUAL_TERMINAL_PROCESSING))?;
     return Ok(RewindMode(stdout , mode))
 }
 
