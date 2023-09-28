@@ -11,8 +11,20 @@ use windows::Win32::System::Console::{
 
 use windows::Win32::Foundation::HANDLE;
 
+// for stdin
 const ENABLE_VIRTUAL_TERMINAL_INPUT     :u32 = 0x0200;
+// for stdout / stderr
 const ENABLE_VIRTUAL_TERMINAL_PROCESSING:u32 = 0x4;
+
+// for raw mode of stdin
+const ENABLE_ECHO_INPUT       :u32 = 0x0004;
+const ENABLE_PROCESSED_INPUT  :u32 = 0x0001;
+const ENABLE_LINE_INPUT       :u32 = 0x0002;
+
+// for raw mode of stdout
+const ENABLE_PROCESSED_OUTPUT :u32 = 0x0001;
+
+const RAW_MODE: u32 = !(ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_OUTPUT);
 
 struct ConsoleHandle(HANDLE);
 
@@ -51,25 +63,30 @@ impl Drop for RewindMode {
     }
 }
 
-fn enable(handle: STD_HANDLE,or_value: u32) -> windows::core::Result<RewindMode> {
+fn change(handle: STD_HANDLE,and_value: u32,or_value: u32) -> windows::core::Result<RewindMode> {
     let stdout = new_console_handle(handle)?;
     let mode = stdout.get_mode()?;
-    stdout.set_mode(CONSOLE_MODE( mode.0 | or_value ))?;
+    stdout.set_mode(CONSOLE_MODE( mode.0 & and_value | or_value ))?;
     return Ok(RewindMode(stdout , mode))
 }
 
 
 #[allow(dead_code)]
 pub fn enable_stdin() -> windows::core::Result<RewindMode> {
-    return enable(STD_INPUT_HANDLE, ENABLE_VIRTUAL_TERMINAL_INPUT);
+    return change(STD_INPUT_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_INPUT);
 }
 
 #[allow(dead_code)]
 pub fn enable_stdout() -> windows::core::Result<RewindMode> {
-    return enable(STD_OUTPUT_HANDLE, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    return change(STD_OUTPUT_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 }
 
 #[allow(dead_code)]
 pub fn enable_stderr() -> windows::core::Result<RewindMode> {
-    return enable(STD_ERROR_HANDLE, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+    return change(STD_ERROR_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+}
+
+#[allow(dead_code)]
+pub fn make_raw() -> windows::core::Result<RewindMode> {
+    return change(STD_INPUT_HANDLE, RAW_MODE, 0);
 }
