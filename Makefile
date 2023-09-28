@@ -1,2 +1,2 @@
 example:
-	cargo run --example examples
+	cargo build --examples
