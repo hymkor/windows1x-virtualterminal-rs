@@ -3,11 +3,13 @@ use windows::Win32::System::Console::{
     GetStdHandle,
     STD_OUTPUT_HANDLE,
     GetConsoleMode,
-    //SetConsoleMode,
-    //STD_HANDLE,
+    SetConsoleMode,
+    // STD_HANDLE,
 };
 
 use windows::Win32::Foundation::HANDLE;
+
+const ENABLE_VIRTUAL_TERMINAL_PROCESSING:u32 = 0x4;
 
 struct ConsoleHandle {
     handle: HANDLE
@@ -33,26 +35,26 @@ impl ConsoleHandle {
             }
         }
     }
-}
 
-/*
-fn set_console_mode(mode: CONSOLE_MODE) -> windows::core::Result<()> {
-    unsafe{
-        let stdout = GetStdHandle( STD_OUTPUT_HANDLE )?;
-        SetConsoleMode( stdout , mode );
-        return Ok(());
+    fn set_mode(&self, mode: CONSOLE_MODE) -> windows::core::Result<()> {
+        unsafe{
+            SetConsoleMode( self.handle  , mode );
+            return Ok(());
+        }
     }
 }
-*/
+
 
 fn main() {
     if let Ok(stdout) = new_console_handle() {
         match stdout.get_mode() {
             Ok(mode) => {
-                println!("success: value={}(0x{:X})",mode.0,mode.0)
+                let _ = stdout.set_mode(
+                    CONSOLE_MODE( mode.0 | ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+                println!("\x1B[36msuccess: value={}(0x{:X})\x1B[0m",mode.0,mode.0);
             },
             Err(err) => {
-                println!("error: {:?}",err)
+                println!("error: {:?}",err);
             }
         }
     }
