@@ -12,16 +12,11 @@ use windows::Win32::Foundation::HANDLE;
 
 const ENABLE_VIRTUAL_TERMINAL_PROCESSING:u32 = 0x4;
 
-struct ConsoleHandle {
-    handle: HANDLE
-}
+struct ConsoleHandle(HANDLE);
 
 fn new_console_handle(handle: STD_HANDLE) -> windows::core::Result<ConsoleHandle> {
     unsafe{
-        let this = ConsoleHandle{
-            handle: GetStdHandle( handle )?
-        };
-        return Ok(this);
+        return Ok(ConsoleHandle(GetStdHandle( handle )?));
     }
 }
 
@@ -30,7 +25,7 @@ impl ConsoleHandle {
         unsafe{
             let mut console_mode = CONSOLE_MODE(0);
 
-            match GetConsoleMode( self.handle  , &mut console_mode ).ok() {
+            match GetConsoleMode( self.0  , &mut console_mode ).ok() {
                 Ok(_) => return Ok(console_mode),
                 Err(err) => return Err(err),
             }
@@ -39,7 +34,7 @@ impl ConsoleHandle {
 
     fn set_mode(&self, mode: CONSOLE_MODE) -> windows::core::Result<()> {
         unsafe{
-            SetConsoleMode( self.handle  , mode );
+            SetConsoleMode( self.0  , mode );
             return Ok(());
         }
     }
