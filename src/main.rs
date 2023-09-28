@@ -44,18 +44,19 @@ impl ConsoleHandle {
     }
 }
 
+fn enable_birtual_terminal_processing() -> windows::core::Result<u32> {
+    let stdout = new_console_handle()?;
+    let mode = stdout.get_mode()?;
+    let _ = stdout.set_mode(
+        CONSOLE_MODE( mode.0 | ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+    return Ok(mode.0)
+}
 
 fn main() {
-    if let Ok(stdout) = new_console_handle() {
-        match stdout.get_mode() {
-            Ok(mode) => {
-                let _ = stdout.set_mode(
-                    CONSOLE_MODE( mode.0 | ENABLE_VIRTUAL_TERMINAL_PROCESSING));
-                println!("\x1B[36msuccess: value={}(0x{:X})\x1B[0m",mode.0,mode.0);
-            },
-            Err(err) => {
-                println!("error: {:?}",err);
-            }
+    match enable_birtual_terminal_processing() {
+        Ok(m) => println!("\x1B[36msuccess: value={}(0x{:X})\x1B[0m",m,m),
+        Err(err) => {
+            println!("error: {:?}",err);
         }
     }
 }
