@@ -24,7 +24,6 @@ impl ConsoleHandle {
     fn get_mode(&self) -> windows::core::Result<CONSOLE_MODE> {
         unsafe{
             let mut console_mode = CONSOLE_MODE(0);
-
             match GetConsoleMode( self.0  , &mut console_mode ).ok() {
                 Ok(_) => return Ok(console_mode),
                 Err(err) => return Err(err),
@@ -40,14 +39,11 @@ impl ConsoleHandle {
     }
 }
 
-pub struct RewindMode {
-    handle: ConsoleHandle,
-    mode: CONSOLE_MODE,
-}
+pub struct RewindMode(ConsoleHandle,CONSOLE_MODE);
 
 impl Drop for RewindMode {
     fn drop(&mut self){
-        let _  = self.handle.set_mode(self.mode);
+        let _  = self.0.set_mode(self.1);
     }
 }
 
@@ -56,7 +52,7 @@ fn enable(handle: STD_HANDLE) -> windows::core::Result<RewindMode> {
     let mode = stdout.get_mode()?;
     let _ = stdout.set_mode(
         CONSOLE_MODE( mode.0 | ENABLE_VIRTUAL_TERMINAL_PROCESSING));
-    return Ok(RewindMode{ handle:stdout , mode:mode })
+    return Ok(RewindMode(stdout , mode))
 }
 
 #[allow(dead_code)]
