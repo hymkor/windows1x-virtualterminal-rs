@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use windows::Win32::System::Console::{
     STD_HANDLE,
     CONSOLE_MODE,
@@ -89,4 +91,20 @@ pub fn enable_stderr() -> windows::core::Result<RewindMode> {
 #[allow(dead_code)]
 pub fn make_raw() -> windows::core::Result<RewindMode> {
     return change(STD_INPUT_HANDLE, RAW_MODE, 0);
+}
+
+#[allow(dead_code)]
+pub fn getkey() -> Result<String,Box<dyn std::error::Error>> {
+    let mut buffer: Vec<u8> = vec![0; 256];
+    let mut stdin = std::io::stdin();
+
+    let n = match stdin.read(&mut buffer) {
+        Ok(n) => n,
+        Err(err) => return Err(Box::new(err)),
+    };
+    buffer.truncate(n);
+    match String::from_utf8(buffer){
+        Ok(s) => return Ok(s),
+        Err(err) => return Err(Box::new(err)),
+    }
 }
