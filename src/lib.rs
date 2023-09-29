@@ -1,46 +1,41 @@
 use std::io::Read;
 
 use windows::Win32::System::Console::{
-    STD_HANDLE,
-    CONSOLE_MODE,
-    STD_INPUT_HANDLE,
-    STD_OUTPUT_HANDLE,
-    STD_ERROR_HANDLE,
-    GetStdHandle,
-    GetConsoleMode,
-    SetConsoleMode,
+    GetConsoleMode, GetStdHandle, SetConsoleMode, CONSOLE_MODE, STD_ERROR_HANDLE, STD_HANDLE,
+    STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
 };
 
 use windows::Win32::Foundation::HANDLE;
 
 // for stdin
-const ENABLE_VIRTUAL_TERMINAL_INPUT     :u32 = 0x0200;
+const ENABLE_VIRTUAL_TERMINAL_INPUT: u32 = 0x0200;
 // for stdout / stderr
-const ENABLE_VIRTUAL_TERMINAL_PROCESSING:u32 = 0x4;
+const ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 = 0x4;
 
 // for raw mode of stdin
-const ENABLE_ECHO_INPUT       :u32 = 0x0004;
-const ENABLE_PROCESSED_INPUT  :u32 = 0x0001;
-const ENABLE_LINE_INPUT       :u32 = 0x0002;
+const ENABLE_ECHO_INPUT: u32 = 0x0004;
+const ENABLE_PROCESSED_INPUT: u32 = 0x0001;
+const ENABLE_LINE_INPUT: u32 = 0x0002;
 
 // for raw mode of stdout
-const ENABLE_PROCESSED_OUTPUT :u32 = 0x0001;
+const ENABLE_PROCESSED_OUTPUT: u32 = 0x0001;
 
-const RAW_MODE: u32 = !(ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_OUTPUT);
+const RAW_MODE: u32 =
+    !(ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_OUTPUT);
 
 struct ConsoleHandle(HANDLE);
 
 fn new_console_handle(handle: STD_HANDLE) -> windows::core::Result<ConsoleHandle> {
-    unsafe{
-        return Ok(ConsoleHandle(GetStdHandle( handle )?));
+    unsafe {
+        return Ok(ConsoleHandle(GetStdHandle(handle)?));
     }
 }
 
 impl ConsoleHandle {
     fn get_mode(&self) -> windows::core::Result<CONSOLE_MODE> {
-        unsafe{
+        unsafe {
             let mut console_mode = CONSOLE_MODE(0);
-            match GetConsoleMode( self.0  , &mut console_mode ).ok() {
+            match GetConsoleMode(self.0, &mut console_mode).ok() {
                 Ok(_) => return Ok(console_mode),
                 Err(err) => return Err(err),
             }
@@ -48,8 +43,8 @@ impl ConsoleHandle {
     }
 
     fn set_mode(&self, mode: CONSOLE_MODE) -> windows::core::Result<()> {
-        unsafe{
-            match SetConsoleMode( self.0  , mode ).ok() {
+        unsafe {
+            match SetConsoleMode(self.0, mode).ok() {
                 Ok(_) => return Ok(()),
                 Err(err) => return Err(err),
             }
@@ -57,19 +52,19 @@ impl ConsoleHandle {
     }
 }
 
-pub struct RewindMode(ConsoleHandle,CONSOLE_MODE);
+pub struct RewindMode(ConsoleHandle, CONSOLE_MODE);
 
 impl Drop for RewindMode {
-    fn drop(&mut self){
-        let _  = self.0.set_mode(self.1);
+    fn drop(&mut self) {
+        let _ = self.0.set_mode(self.1);
     }
 }
 
-fn change(handle: STD_HANDLE,and_value: u32,or_value: u32) -> windows::core::Result<RewindMode> {
+fn change(handle: STD_HANDLE, and_value: u32, or_value: u32) -> windows::core::Result<RewindMode> {
     let stdout = new_console_handle(handle)?;
     let mode = stdout.get_mode()?;
-    stdout.set_mode(CONSOLE_MODE( mode.0 & and_value | or_value ))?;
-    return Ok(RewindMode(stdout , mode))
+    stdout.set_mode(CONSOLE_MODE(mode.0 & and_value | or_value))?;
+    return Ok(RewindMode(stdout, mode));
 }
 
 pub fn enable_stdin() -> windows::core::Result<RewindMode> {
@@ -88,7 +83,7 @@ pub fn make_raw() -> windows::core::Result<RewindMode> {
     return change(STD_INPUT_HANDLE, RAW_MODE, 0);
 }
 
-pub fn getkey() -> Result<String,Box<dyn std::error::Error>> {
+pub fn getkey() -> Result<String, Box<dyn std::error::Error>> {
     let mut buffer: Vec<u8> = vec![0; 256];
     let mut stdin = std::io::stdin();
 
@@ -97,7 +92,7 @@ pub fn getkey() -> Result<String,Box<dyn std::error::Error>> {
         Err(err) => return Err(Box::new(err)),
     };
     buffer.truncate(n);
-    match String::from_utf8(buffer){
+    match String::from_utf8(buffer) {
         Ok(s) => return Ok(s),
         Err(err) => return Err(Box::new(err)),
     }
