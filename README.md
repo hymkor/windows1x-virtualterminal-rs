@@ -43,3 +43,17 @@ fn main() {
 ```
 
 ![image](getkey.png)
+
+This code does NOT work as expected
+-----------------------------------
+
+[examples/ng.rs](examples/ng.rs)
+
+```examples/ng.rs
+fn main() {
+    let _ = virtualterminal::enable_stdout().unwrap();
+    println!("\x1B[36m(enabled)\x1B[0m");
+}
+```
+
+The printed text is not colored because the old state is restored by drop before println! is executed.
