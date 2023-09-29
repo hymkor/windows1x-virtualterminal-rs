@@ -19,7 +19,7 @@ fn main() {
 }
 ```
 
-![image](examples.png)
+![image](examples/examples.png)
 
 Make terminal raw-mode and read key from console
 ------------------------------------------------
@@ -42,7 +42,7 @@ fn main() {
 }
 ```
 
-![image](getkey.png)
+![image](examples/getkey.png)
 
 This code does NOT work as expected
 -----------------------------------
