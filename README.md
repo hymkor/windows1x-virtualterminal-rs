@@ -6,9 +6,9 @@ Enable ANSI Escape sequence on Windows1x
 
 `enable_stdout` and `enable_stderr` set the bit for `ENABLE_VIRTUAL_TERMINAL_PROCESSING` of the console mode.
 
-[examples/examples.rs](examples/examples.rs)
+[examples/color.rs](examples/color.rs)
 
-```examples/examples.rs
+```examples/color.rs
 fn main() {
     if let Ok(_) = virtualterminal::enable_stdout() {
         println!("\x1B[36m(enabled)\x1B[0m");
