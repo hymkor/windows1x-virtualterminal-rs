@@ -52,34 +52,40 @@ impl ConsoleHandle {
     }
 }
 
-pub struct RewindMode(ConsoleHandle, CONSOLE_MODE);
+pub struct OldState(ConsoleHandle, CONSOLE_MODE);
 
-impl Drop for RewindMode {
-    fn drop(&mut self) {
+impl OldState {
+    pub fn restore(&mut self) {
         let _ = self.0.set_mode(self.1);
     }
 }
 
-fn change(handle: STD_HANDLE, and_value: u32, or_value: u32) -> windows::core::Result<RewindMode> {
+impl Drop for OldState {
+    fn drop(&mut self) {
+        self.restore();
+    }
+}
+
+fn change(handle: STD_HANDLE, and_value: u32, or_value: u32) -> windows::core::Result<OldState> {
     let stdout = new_console_handle(handle)?;
     let mode = stdout.get_mode()?;
     stdout.set_mode(CONSOLE_MODE(mode.0 & and_value | or_value))?;
-    return Ok(RewindMode(stdout, mode));
+    return Ok(OldState(stdout, mode));
 }
 
-pub fn enable_stdin() -> windows::core::Result<RewindMode> {
+pub fn enable_stdin() -> windows::core::Result<OldState> {
     return change(STD_INPUT_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_INPUT);
 }
 
-pub fn enable_stdout() -> windows::core::Result<RewindMode> {
+pub fn enable_stdout() -> windows::core::Result<OldState> {
     return change(STD_OUTPUT_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 }
 
-pub fn enable_stderr() -> windows::core::Result<RewindMode> {
+pub fn enable_stderr() -> windows::core::Result<OldState> {
     return change(STD_ERROR_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 }
 
-pub fn make_raw() -> windows::core::Result<RewindMode> {
+pub fn make_raw() -> windows::core::Result<OldState> {
     return change(STD_INPUT_HANDLE, RAW_MODE, 0);
 }
 
