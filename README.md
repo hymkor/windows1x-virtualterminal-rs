@@ -19,7 +19,7 @@ fn main() {
 }
 ```
 
-![image](examples/examples.png)
+![image](examples/color.png)
 
 Make terminal raw-mode and read key from console
 ------------------------------------------------
