@@ -8,7 +8,7 @@ Enable ANSI Escape sequence on Windows1x
 
 [examples/color.rs](examples/color.rs)
 
-```examples/color.rs
+```rust examples/color.rs
 fn main() {
     if let Ok(_) = virtualterminal::enable_stdout() {
         println!("\x1B[36m(enabled)\x1B[0m");
@@ -26,7 +26,7 @@ Make terminal raw-mode and read key from console
 
 [examples/getkey.rs](examples/getkey.rs)
 
-```examples/getkey.rs
+```rust examples/getkey.rs
 fn main() {
     if let Ok(_) = virtualterminal::enable_stdin() {
         if let Ok(_) = virtualterminal::make_raw() {
@@ -49,7 +49,7 @@ This code does NOT work as expected
 
 [examples/ng.rs](examples/ng.rs)
 
-```examples/ng.rs
+```rust examples/ng.rs
 fn main() {
     let _ = virtualterminal::enable_stdout().unwrap();
     println!("\x1B[36m(enabled)\x1B[0m");
