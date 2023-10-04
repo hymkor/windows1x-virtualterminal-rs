@@ -50,6 +50,17 @@ impl ConsoleHandle {
             }
         }
     }
+
+    pub fn width(&self) -> windows::core::Result<i16> {
+        use windows::Win32::System::Console::{
+            GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO,
+        };
+        let mut csbi: CONSOLE_SCREEN_BUFFER_INFO = Default::default();
+        unsafe {
+            GetConsoleScreenBufferInfo(self.0, &mut csbi);
+            return Ok(csbi.dwSize.X);
+        }
+    }
 }
 
 pub struct OldState(ConsoleHandle, CONSOLE_MODE);
@@ -102,4 +113,14 @@ pub fn getkey() -> Result<String, Box<dyn std::error::Error>> {
         Ok(s) => return Ok(s),
         Err(err) => return Err(Box::new(err)),
     }
+}
+
+pub fn width_stdout() -> windows::core::Result<i16> {
+    let stdout = new_console_handle(STD_OUTPUT_HANDLE)?;
+    return stdout.width();
+}
+
+pub fn width_stderr() -> windows::core::Result<i16> {
+    let stdout = new_console_handle(STD_ERROR_HANDLE)?;
+    return stdout.width();
 }
