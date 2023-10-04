@@ -5,8 +5,6 @@ use windows::Win32::System::Console::{
     STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
 };
 
-use windows::Win32::Foundation::HANDLE;
-
 // for stdin
 const ENABLE_VIRTUAL_TERMINAL_INPUT: u32 = 0x0200;
 // for stdout / stderr
@@ -27,15 +25,15 @@ pub type Error = windows::core::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-struct ConsoleHandle(HANDLE);
+struct Handle(windows::Win32::Foundation::HANDLE);
 
-fn new_console_handle(handle: STD_HANDLE) -> Result<ConsoleHandle> {
+fn new_console_handle(handle: STD_HANDLE) -> Result<Handle> {
     unsafe {
-        return Ok(ConsoleHandle(GetStdHandle(handle)?));
+        return Ok(Handle(GetStdHandle(handle)?));
     }
 }
 
-impl ConsoleHandle {
+impl Handle {
     fn get_mode(&self) -> Result<CONSOLE_MODE> {
         unsafe {
             let mut console_mode = CONSOLE_MODE(0);
@@ -67,7 +65,7 @@ impl ConsoleHandle {
     }
 }
 
-pub struct OldState(ConsoleHandle, CONSOLE_MODE);
+pub struct OldState(Handle, CONSOLE_MODE);
 
 impl OldState {
     pub fn restore(&mut self) {
