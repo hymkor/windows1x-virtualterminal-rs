@@ -23,16 +23,20 @@ const ENABLE_PROCESSED_OUTPUT: u32 = 0x0001;
 const RAW_MODE: u32 =
     !(ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_OUTPUT);
 
+pub type Error = windows::core::Error;
+
+pub type Result<T> = std::result::Result<T, Error>;
+
 struct ConsoleHandle(HANDLE);
 
-fn new_console_handle(handle: STD_HANDLE) -> windows::core::Result<ConsoleHandle> {
+fn new_console_handle(handle: STD_HANDLE) -> Result<ConsoleHandle> {
     unsafe {
         return Ok(ConsoleHandle(GetStdHandle(handle)?));
     }
 }
 
 impl ConsoleHandle {
-    fn get_mode(&self) -> windows::core::Result<CONSOLE_MODE> {
+    fn get_mode(&self) -> Result<CONSOLE_MODE> {
         unsafe {
             let mut console_mode = CONSOLE_MODE(0);
             match GetConsoleMode(self.0, &mut console_mode).ok() {
@@ -42,7 +46,7 @@ impl ConsoleHandle {
         }
     }
 
-    fn set_mode(&self, mode: CONSOLE_MODE) -> windows::core::Result<()> {
+    fn set_mode(&self, mode: CONSOLE_MODE) -> Result<()> {
         unsafe {
             match SetConsoleMode(self.0, mode).ok() {
                 Ok(_) => return Ok(()),
@@ -51,7 +55,7 @@ impl ConsoleHandle {
         }
     }
 
-    pub fn width(&self) -> windows::core::Result<i16> {
+    pub fn width(&self) -> Result<i16> {
         use windows::Win32::System::Console::{
             GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO,
         };
@@ -77,30 +81,30 @@ impl Drop for OldState {
     }
 }
 
-fn change(handle: STD_HANDLE, and_value: u32, or_value: u32) -> windows::core::Result<OldState> {
+fn change(handle: STD_HANDLE, and_value: u32, or_value: u32) -> Result<OldState> {
     let stdout = new_console_handle(handle)?;
     let mode = stdout.get_mode()?;
     stdout.set_mode(CONSOLE_MODE(mode.0 & and_value | or_value))?;
     return Ok(OldState(stdout, mode));
 }
 
-pub fn enable_stdin() -> windows::core::Result<OldState> {
+pub fn enable_stdin() -> Result<OldState> {
     return change(STD_INPUT_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_INPUT);
 }
 
-pub fn enable_stdout() -> windows::core::Result<OldState> {
+pub fn enable_stdout() -> Result<OldState> {
     return change(STD_OUTPUT_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 }
 
-pub fn enable_stderr() -> windows::core::Result<OldState> {
+pub fn enable_stderr() -> Result<OldState> {
     return change(STD_ERROR_HANDLE, !0, ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 }
 
-pub fn make_raw() -> windows::core::Result<OldState> {
+pub fn make_raw() -> Result<OldState> {
     return change(STD_INPUT_HANDLE, RAW_MODE, 0);
 }
 
-pub fn getkey() -> Result<String, Box<dyn std::error::Error>> {
+pub fn getkey() -> std::result::Result<String, Box<dyn std::error::Error>> {
     let mut buffer: Vec<u8> = vec![0; 256];
     let mut stdin = std::io::stdin();
 
@@ -115,12 +119,12 @@ pub fn getkey() -> Result<String, Box<dyn std::error::Error>> {
     }
 }
 
-pub fn width_stdout() -> windows::core::Result<i16> {
+pub fn width_stdout() -> Result<i16> {
     let stdout = new_console_handle(STD_OUTPUT_HANDLE)?;
     return stdout.width();
 }
 
-pub fn width_stderr() -> windows::core::Result<i16> {
+pub fn width_stderr() -> Result<i16> {
     let stdout = new_console_handle(STD_ERROR_HANDLE)?;
     return stdout.width();
 }
