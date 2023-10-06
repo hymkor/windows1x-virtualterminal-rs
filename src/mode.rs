@@ -25,13 +25,13 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 struct Handle(windows::Win32::Foundation::HANDLE);
 
-fn new_console_handle(handle: STD_HANDLE) -> Result<Handle> {
-    unsafe {
-        return Ok(Handle(GetStdHandle(handle)?));
-    }
-}
-
 impl Handle {
+    fn new(handle: STD_HANDLE) -> Result<Handle> {
+        unsafe {
+            return Ok(Handle(GetStdHandle(handle)?));
+        }
+    }
+
     fn get_mode(&self) -> Result<CONSOLE_MODE> {
         unsafe {
             let mut console_mode = CONSOLE_MODE(0);
@@ -78,7 +78,7 @@ impl Drop for OldState {
 }
 
 fn change(handle: STD_HANDLE, and_value: u32, or_value: u32) -> Result<OldState> {
-    let stdout = new_console_handle(handle)?;
+    let stdout = Handle::new(handle)?;
     let mode = stdout.get_mode()?;
     stdout.set_mode(CONSOLE_MODE(mode.0 & and_value | or_value))?;
     return Ok(OldState(stdout, mode));
@@ -101,11 +101,11 @@ pub fn make_raw() -> Result<OldState> {
 }
 
 pub fn width_stdout() -> Result<i16> {
-    let stdout = new_console_handle(STD_OUTPUT_HANDLE)?;
+    let stdout = Handle::new(STD_OUTPUT_HANDLE)?;
     return stdout.width();
 }
 
 pub fn width_stderr() -> Result<i16> {
-    let stdout = new_console_handle(STD_ERROR_HANDLE)?;
+    let stdout = Handle::new(STD_ERROR_HANDLE)?;
     return stdout.width();
 }
