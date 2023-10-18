@@ -1,6 +1,11 @@
 windows1x-virtualterminal-rs
 ============================
 
+This package provides these features.
+
+- Enable ANSI Escape sequence on Windows1x
+- Read one key from the terminal without waiting for the Enter key pressed
+
 Enable ANSI Escape sequence on Windows1x
 ----------------------------------------
 
@@ -21,7 +26,7 @@ fn main() {
 
 ![image](examples/color.png)
 
-Make terminal raw-mode and read key from console
+Read one key from the terminal without waiting for the Enter key pressed
 ------------------------------------------------
 
 [examples/getkey.rs](examples/getkey.rs)
@@ -41,6 +46,9 @@ fn main() {
     // virtual_terminal_input is disabled.
 }
 ```
+
+- `virtualterminal::enable_stdin()` enables the virtual terminal input mode of Windows1x.
+- `virtualterminal::make_raw()` makes the terminal raw-mode.
 
 ![image](examples/getkey.png)
 
